@@ -1,0 +1,57 @@
+name: Build & Deploy API Docs to GitHub Pages (/api)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install doc deps
+        working-directory: docs/api
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # If needed:
+          # pip install myst-parser "myst-parser[linkify]" linkify-it-py furo
+
+      - name: Build Sphinx HTML
+        working-directory: docs/api
+        run: |
+          make html
+          # Inject the RunLLM widget into built pages (your script)
+          python wrap_run_llm.py
+
+      - name: Stage site under /api
+        run: |
+          rm -rf publish
+          mkdir -p publish/api
+          cp -r docs/api/_build/html/* publish/api/
+          # Optional: redirect site root to /api/
+          cat > publish/index.html <<'HTML'
+          <!doctype html><meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=/api/">
+          <link rel="canonical" href="/api/">
+          HTML
+          # Required for GitHub Pages (so _static etc. aren’t hidden)
+          touch publish/.nojekyll
+          # Custom domain
+          echo bench.flashinfer.ai > publish/CNAME
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: publish
+          # Publish to gh-pages branch
