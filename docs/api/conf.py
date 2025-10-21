@@ -4,8 +4,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, List
 
-import tomli
-
 # import tlcpack_sphinx_addon
 # Configuration file for the Sphinx documentation builder.
 #
@@ -23,10 +21,19 @@ project = "FlashInfer-Bench"
 author = "FlashInfer-Bench Contributors"
 copyright = f"2025-{datetime.now().year}, {author}"
 
-# Load version from pyproject.toml
-with open("../pyproject.toml", "rb") as f:
-    pyproject_data = tomli.load(f)
-__version__ = pyproject_data["project"]["version"]
+# Load version dynamically using setuptools_scm
+try:
+    from setuptools_scm import get_version
+
+    __version__ = get_version(root="../..")
+except Exception:
+    # Fallback: try to import from installed package
+    try:
+        import flashinfer_bench
+
+        __version__ = flashinfer_bench.__version__
+    except Exception:
+        __version__ = "0.1.0"
 
 
 # -- General configuration ---------------------------------------------------
