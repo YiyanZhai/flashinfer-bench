@@ -90,10 +90,6 @@ class TracingRuntime:
         logger.debug(f"  TraceSet root path: {self._trace_set.root}")
         logger.debug(f"  Tracing configs: {len(self._tracing_configs)} definitions configured")
 
-        from flashinfer_bench.integration.flashinfer import install_flashinfer_integrations
-
-        install_flashinfer_integrations()
-
     def collect(self, def_name: str, runtime_args: Dict[str, Any]):
         """
         Record a workload for later serialization to disk.
@@ -475,7 +471,17 @@ def _init_tracing_runtime_from_env() -> Optional["TracingRuntime"]:
     fib_dataset_path = get_fib_dataset_path()
     trace_set = TraceSet.from_path(fib_dataset_path)
     tracing_configs = FULL_TRACING_CONFIGS
-    return TracingRuntime(trace_set, tracing_configs, None)
+    runtime = TracingRuntime(trace_set, tracing_configs, None)
+    
+    # Install integrations after runtime is created to avoid circular imports
+    try:
+        from flashinfer_bench.integration.flashinfer import install_flashinfer_integrations
+        install_flashinfer_integrations()
+    except Exception:
+        # Silently ignore if integrations cannot be installed
+        pass
+    
+    return runtime
 
 
 # Global singleton tracing runtime instance
