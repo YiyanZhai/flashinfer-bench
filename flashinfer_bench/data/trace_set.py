@@ -47,6 +47,12 @@ class TraceSet:
     _solution_by_name: Dict[str, Solution] = field(default_factory=dict, init=False, repr=False)
     """Fast lookup index: solution name -> Solution object. Automatically maintained."""
 
+    def __post_init__(self):
+        """Initialize the _solution_by_name index from existing solutions."""
+        for solutions_list in self.solutions.values():
+            for solution in solutions_list:
+                self._solution_by_name[solution.name] = solution
+
     @property
     def definitions_path(self) -> Path:
         if self.root is None:
@@ -177,7 +183,8 @@ class TraceSet:
     def get_solution(self, name: str) -> Optional[Solution]:
         """Get a solution by name from all loaded solutions.
 
-        Uses an O(1) index lookup for fast retrieval.
+        Uses an O(1) index lookup for fast retrieval. Since solution names are unique
+        across the entire dataset, this returns at most one solution.
 
         Parameters
         ----------

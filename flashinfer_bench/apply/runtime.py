@@ -14,7 +14,6 @@ from flashinfer_bench.compile import get_builder_registry
 from flashinfer_bench.data import TraceSet
 from flashinfer_bench.env import get_fib_dataset_path, get_fib_enable_apply
 from flashinfer_bench.logging import get_logger
-from flashinfer_bench.tracing import get_tracing_runtime
 
 from .config import ApplyConfig
 from .key import ApplyKeyBuilder, ApplyKeyFactory
@@ -106,16 +105,6 @@ class ApplyRuntime:
             If the definition is not found and no fallback is provided, or if
             no suitable implementation is available and no fallback is provided.
         """
-        # First try to run tracing logic in case tracing is enabled
-        tracing_runtime = get_tracing_runtime()
-        if tracing_runtime is not None:
-            try:
-                tracing_runtime.collect(def_name, runtime_kwargs)
-            except Exception as e:
-                logger.error(f"Error collecting trace for {def_name}: {e}")
-                pass
-
-        # Then try to run apply logic
         defn = self._trace_set.definitions.get(def_name)
         if defn is None:
             if fallback is None:
