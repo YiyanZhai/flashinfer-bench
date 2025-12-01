@@ -51,6 +51,8 @@ class TraceSet:
         """Initialize the _solution_by_name index from existing solutions."""
         for solutions_list in self.solutions.values():
             for solution in solutions_list:
+                if solution.name in self._solution_by_name:
+                    raise ValueError(f"Duplicate solution name found: {solution.name}")
                 self._solution_by_name[solution.name] = solution
 
     @property
