@@ -30,7 +30,7 @@ class BuilderRegistry:
         builder = self._solution_to_builder.get(sol.name)
         if builder is not None:
             return builder.build(defn, sol)
-        
+
         for builder in self._builders:
             if builder.can_build(sol):
                 self._solution_to_builder[sol.name] = builder
