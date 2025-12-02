@@ -60,11 +60,6 @@ class ApplyRuntime:
         # def_name -> callable: (runtime_kwargs) -> ApplyKey
         self._key_builders: Dict[str, ApplyKeyBuilder] = {}
 
-        # Install integrations
-        from flashinfer_bench.integration.flashinfer import install_flashinfer_integrations
-
-        install_flashinfer_integrations()
-
     def dispatch(
         self,
         def_name: str,
@@ -161,6 +156,24 @@ def _init_apply_runtime_from_env() -> Optional["ApplyRuntime"]:
 
 
 _global_apply_runtime: Optional["ApplyRuntime"] = _init_apply_runtime_from_env()
+
+
+def install_integrations() -> None:
+    """Install FlashInfer integrations if a runtime is available.
+
+    This should be called after the apply module is fully initialized to avoid
+    circular import issues.
+    """
+    if _global_apply_runtime is None:
+        return
+
+    try:
+        from flashinfer_bench.integration.flashinfer import install_flashinfer_integrations
+
+        install_flashinfer_integrations()
+        logger.info("FlashInfer integrations installed successfully")
+    except Exception as e:
+        logger.warning(f"Failed to install FlashInfer integrations: {e}")
 
 
 def get_apply_runtime() -> Optional["ApplyRuntime"]:
